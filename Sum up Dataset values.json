@@ -1,0 +1,75 @@
+{
+    "formatVersion": "2.4",
+    "exportDate": 1613403844503,
+    "action": {
+        "name": "Sum up Dataset values",
+        "description": "",
+        "configuration": {
+            "variables": [
+                {
+                    "name": "TOPdesk_url",
+                    "value": ""
+                },
+                {
+                    "name": "TOPdesk_user",
+                    "value": ""
+                },
+                {
+                    "name": "TOPdesk_application_password",
+                    "value": ""
+                },
+                {
+                    "name": "dataset1",
+                    "value": ""
+                },
+                {
+                    "name": "dataset1Field1",
+                    "value": ""
+                },
+                {
+                    "name": "targetField1",
+                    "value": ""
+                }
+            ],
+            "mappingDefinitions": [],
+            "steps": [
+                {
+                    "type": "HTTP_REQUEST",
+                    "executionCondition": "ONLY_WHEN_PREVIOUS_SUCCEEDED",
+                    "customExecutionCondition": "",
+                    "name": "getDataset1",
+                    "method": "GET",
+                    "url": "${_variables.TOPdesk_url?no_esc}/tas/api/assetmgmt/assets/getGridFieldValues?assetId=${_card[\"id\"]!}&fieldId=${_variables[\"dataset1\"]}",
+                    "headers": [
+                        {
+                            "name": "Authorization",
+                            "value": "Basic  ${_base64(_variables.TOPdesk_user + \":\" + _variables.TOPdesk_application_password)}"
+                        }
+                    ],
+                    "escapeBodyValues": true,
+                    "body": ""
+                },
+                {
+                    "type": "HTTP_REQUEST",
+                    "executionCondition": "ONLY_WHEN_PREVIOUS_SUCCEEDED",
+                    "customExecutionCondition": "",
+                    "name": "sumDataset1",
+                    "method": "POST",
+                    "url": "${_variables.TOPdesk_url?no_esc}/tas/api/assetmgmt/assets/${_card[\"id\"]!}",
+                    "headers": [
+                        {
+                            "name": "Content-Type",
+                            "value": "application/json"
+                        },
+                        {
+                            "name": "Authorization",
+                            "value": "Basic  ${_base64(_variables.TOPdesk_user + \":\" + _variables.TOPdesk_application_password)}"
+                        }
+                    ],
+                    "escapeBodyValues": true,
+                    "body": "<#list _responses[\"getDataset1\"][\"body\"].dataSet as entries>\n\t<#if _responses[\"getDataset1\"][\"body\"].dataSet?exists>\n                <#if _responses[\"getDataset1\"][\"body\"].dataSet?is_sequence>\n\t\t\t\t\t<#assign sum = 0>\n                        <#list _responses[\"getDataset1\"][\"body\"].dataSet as x>\n                             <#assign sum=sum?number+x[_variables[\"dataset1Field1\"]]?number>\n                        </#list>\n                <#else>\n                \t\t<#assign sum = _responses[\"getDataset1\"][\"body\"].dataSet[_variables[\"dataset1Field1\"]]>\n                </#if>\n\t</#if>\n</#list>\n\n{\n  \"${_variables[\"targetField1\"]}\": \"${sum}\"\n}"
+                }
+            ]
+        }
+    }
+}
